@@ -6,7 +6,7 @@ This plugin shows some examples of:
 * Resizing utility item
 * Customizing the CRM container
 
-Sadly it seems it's not possible to disable the popout-ability of the Utility Item, but I left the code in there anyway
+Sadly it seems it's not possible to disable the popout-ability of the Utility Item yet, but I left the code in there anyway
 # Your custom Twilio Flex Plugin
 
 Twilio Flex Plugins allow you to customize the appearance and behavior of [Twilio Flex](https://www.twilio.com/flex). If you want to learn more about the capabilities and how to use the API, check out our [Flex documentation](https://www.twilio.com/docs/flex).

@@ -11,12 +11,15 @@ const softphonePanelWidthHalf = 400;
 
 const PLUGIN_NAME = 'SalesforceAgentDashboardPlugin';
 
-
-function disablePopOut() {
+/*
+ * Can't use Custom Console API methods with an Open CTI softphone
+ * utility item (keeping this around for reference)
+ */
+async function _disablePopOut_notworking() {
   const sfApi = window.sforce.console;
   console.log(`Attempting to disable popout...`);
 
-  sfApi.setCustomConsoleComponentPopoutable({
+  await sfApi.setCustomConsoleComponentPopoutable({
     popoutable: false,
     callback: result => {
       if (result.success) {
@@ -27,6 +30,7 @@ function disablePopOut() {
     }
   });
 }
+
 
 function setSoftphonePanelWidth(width) {
   const sfApi = window.sforce.opencti;
@@ -137,8 +141,9 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
 
     // *Try* to disable popout in Utility Bar - using the Console API per this URL:
     // https://trailblazer.salesforce.com/ideaView?id=0873A000000U06TQAS
-    // SPOILER: It ain't working
-    disablePopOut();
+    // SPOILER: It ain't working, and doesn't seem to be possible for standard 
+    // components like the Open CTI Softphone
+    //await disablePopOut();
 
     // Let's pretend right hand CRM panel is a stats dashboard that shows when calls are completed
     // and hides when a new call comes in
