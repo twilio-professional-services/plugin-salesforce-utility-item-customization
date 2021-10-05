@@ -193,7 +193,6 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       hideAgentDesktopPanel2(manager);
       setSoftphoneItemLabel('Active Call'); 
       setSoftphoneItemIcon('unmuted');
-      resetState();
     });
     flex.Actions.addListener('afterHoldCall', (payload) => {
       // Tweak the icon when call is put on hold
