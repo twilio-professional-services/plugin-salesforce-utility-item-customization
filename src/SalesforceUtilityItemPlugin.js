@@ -11,26 +11,50 @@ const softphonePanelWidthHalf = 400;
 
 const PLUGIN_NAME = 'SalesforceAgentDashboardPlugin';
 
-/*
- * Can't use Custom Console API methods with an Open CTI softphone
- * utility item (keeping this around for reference)
- */
-async function _disablePopOut_notworking() {
-  const sfApi = window.sforce.console;
-  console.log(`Attempting to disable popout...`);
 
-  await sfApi.setCustomConsoleComponentPopoutable({
-    popoutable: false,
-    callback: result => {
-      if (result.success) {
-        console.log(`Disabling popout succeeded`);
-      } else {
-        console.error('Error disabling popout');
-      }
+
+
+/** 
+ * Returns the (hopefully only) call reservation 
+ */
+function getCurrentVoiceCallReservation(manager) {
+  manager.workerClient.reservations.forEach((reservation, sid) => {
+    console.debug(reservation.task);
+    if (TaskHelper.isCallTask(reservation.task)) {
+      return reservation;
     }
   });
 }
 
+/*
+ * Can't use Custom Console API methods with an Open CTI softphone
+ * utility item (keeping this around for reference)
+ */
+async function disablePopOut() {
+  const sfApi = window.sforce.console;
+  console.debug(`SalesforceUtilityItemPlugin: Attempting to disable popout...`);
+
+  await sfApi.setCustomConsoleComponentPopoutable(false,
+    result => {
+      if (result.success) {
+        console.debug(`SalesforceUtilityItemPlugin: Disabling popout succeeded`);
+      } else {
+        console.error('SalesforceUtilityItemPlugin: Error disabling popout');
+      }
+    });
+}
+
+
+
+function setSoftphonePanelVisibility(isVisible) {
+  const sfApi = window.sforce.opencti;
+
+  sfApi.setSoftphonePanelVisibility({
+    visible: isVisible,
+    callback: result => {
+    }
+  });
+}
 
 function setSoftphonePanelWidth(width) {
   const sfApi = window.sforce.opencti;
@@ -38,11 +62,6 @@ function setSoftphonePanelWidth(width) {
   sfApi.setSoftphonePanelWidth({
     widthPX: width,
     callback: result => {
-      if (result.success) {
-        console.log(`Softphone panel width set to ${width}`);
-      } else {
-        console.error('Error setting softphone panel width.\r\n', result.errors);
-      }
     }
   });
 }
@@ -51,16 +70,10 @@ function setSoftphonePanelWidth(width) {
 
 function setSoftphoneItemLabel(label) {
   const sfApi = window.sforce.opencti;
-  console.log(`Setting softphone label to '${label}'...`);
 
   sfApi.setSoftphoneItemLabel({
     label,
     callback: result => {
-      if (result.success) {
-        console.log(`Softphone label set to '${label}'`);
-      } else {
-        console.error('Error setting softphone label.\r\n', result.errors);
-      }
     }
   });
 }
@@ -100,31 +113,31 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
 
     if (!isSalesForce(sfdcBaseUrl)) {
       // Continue as usual
-      console.warn('Not initializing Salesforce since this instance has been launched independently.');
+      console.warn('SalesforceUtilityItemPlugin: Not initializing Salesforce since this instance has been launched independently.');
       return false;
     }
 
     // Check first. We are not the only SFDC plugin!
     if (!window.sforce) { 
-      console.warn('Salesforce APIs not loaded. Loading Open CTI and Console Integration API...');
+      console.warn('SalesforceUtilityItemPlugin: Salesforce APIs not loaded. Loading Open CTI and Console Integration API...');
       // Open CTI
       const sfOpenCTIScript = getOpenCTIScript(sfdcBaseUrl);
       const sfOpenCTIScriptUrl = `${sfdcBaseUrl}/support/api/44.0/${sfOpenCTIScript}`;
       await loadScript(sfOpenCTIScriptUrl);
 
-      // Console Integration API
+      // Console Integration API (not needed yet)
       const sfConsoleAPIScriptUrl = `${sfdcBaseUrl}/support/console/52.0/integration.js`;
       await loadScript(sfConsoleAPIScriptUrl);
     }
 
     if (!window.sforce) {
-      console.error('Salesforce APIs cannot be found');
+      console.error('SalesforceUtilityItemPlugin: Salesforce APIs cannot be found');
       return false;
     } 
 
     return true;
-  }
-  
+  }  
+
   /**
    * This code is run when your plugin is being started
    * Use this to modify any UI components or attach to the actions framework
@@ -139,11 +152,14 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       return;
     }
 
+    // Set visible (could use local storage to remember state)
+    setSoftphonePanelVisibility(true);
+
     // *Try* to disable popout in Utility Bar - using the Console API per this URL:
     // https://trailblazer.salesforce.com/ideaView?id=0873A000000U06TQAS
     // SPOILER: It ain't working, and doesn't seem to be possible for standard 
     // components like the Open CTI Softphone
-    //await disablePopOut();
+    await disablePopOut();
 
     // Let's pretend right hand CRM panel is a stats dashboard that shows when calls are completed
     // and hides when a new call comes in
@@ -180,11 +196,11 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
 
       tasks.forEach(task => {
         if (task.status !== 'completed') {
-          console.debug('Non-completed task!');
+          console.debug('SalesforceUtilityItemPlugin: Non-completed task!');
           return;
         } 
       });
-      console.debug('All tasks completed!');
+      console.debug('SalesforceUtilityItemPlugin: All tasks completed!');
 
       setSoftphonePanelWidth(softphonePanelWidthFull);
       showAgentDesktopPanel2(manager);
