@@ -3,19 +3,16 @@
 ## Things it does
 
 * Resizes the Flex softphone dynamically in Salesforce via Open CTI
+  * Focuses the softphone whenever the utility item renders (so when launching Salesforce, or refreshing page)
   * Expanding it when tasks are all wrapped up, and showing the panel on the right. Thinking here is that one day we might have the agent stats here - pulling from Insights
   * Contracting it when a new call comes in, and hiding the pretend dashboard on the right
-  * Manipulates Utility Bar tab text as call lifecycle progresses “Incoming Call”, “Active Call”, “Completed Call”, “No Calls”
-    * Further work being done to manipulate icon too
-
-## Things it doesn’t do
-
-* Disable the popout feature of the Utility Bar item
-  * We tried everything here, but it seems we don’t get API access to these controls unless it’s a custom component (which Open CTI Softphone is not)
+  * Manipulates Utility Bar tab text and icon as call lifecycle progresses “Incoming Call”, “Active Call”, “Completed Call”, “No Calls”
+  * Disables the popout feature of the Utility Bar item - to prevent active calls from being dropped
 
 
 ## Demo
 
+Needs a wee refresh!
 <img width="768px" src="screenshots/walkthrough.gif"/>
 
 
