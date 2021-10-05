@@ -78,6 +78,16 @@ function setSoftphoneItemLabel(label) {
   });
 }
 
+function setSoftphoneItemIcon(icon) {
+  const sfApi = window.sforce.opencti;
+
+  sfApi.setSoftphoneItemIcon({
+    key: icon,
+    callback: result => {
+    }
+  });
+}
+
 function showAgentDesktopPanel2(manager) {
   manager.updateConfig({
     componentProps: {
@@ -155,10 +165,8 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // Set visible (could use local storage to remember state)
     setSoftphonePanelVisibility(true);
 
-    // *Try* to disable popout in Utility Bar - using the Console API per this URL:
+    // Disable popout in Utility Bar - using the Console API per this URL:
     // https://trailblazer.salesforce.com/ideaView?id=0873A000000U06TQAS
-    // SPOILER: It ain't working, and doesn't seem to be possible for standard 
-    // components like the Open CTI Softphone
     await disablePopOut();
 
     // Let's pretend right hand CRM panel is a stats dashboard that shows when calls are completed
@@ -176,18 +184,37 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // and also update the UI size and right hand panel visibility
     // TODO: Update icon too
     manager.workerClient.on('reservationCreated', reservation => {
-      setSoftphoneItemLabel('Incoming Call!') 
+      setSoftphoneItemLabel('Incoming Call!');
+      setSoftphoneItemIcon('incoming_call');
     });
     flex.Actions.addListener('afterAcceptTask', () => {
       // Resize softphone UI to 50% and hide right panel when call is answered
       setSoftphonePanelWidth(softphonePanelWidthHalf);
       hideAgentDesktopPanel2(manager);
       setSoftphoneItemLabel('Active Call'); 
+      setSoftphoneItemIcon('unmuted');
+      resetState();
+    });
+    flex.Actions.addListener('afterHoldCall', (payload) => {
+      // Tweak the icon when call is put on hold
+      setSoftphoneItemIcon('pause_alt'); 
+    });
+    flex.Actions.addListener('afterUnholdCall', (payload) => {
+      // Tweak the icon when call is taken off hold
+      const connection = manager.voiceClient.activeConnection();
+      setSoftphoneItemIcon(connection.isMuted() ? 'muted' : 'unmuted'); 
+    });
+    flex.Actions.addListener('afterToggleMute', (payload) => {
+      const connection = manager.voiceClient.activeConnection();
+      // Tweak the icon when call is muted or unmuted
+      setSoftphoneItemIcon(connection.isMuted() ? 'muted' : 'unmuted'); 
     });
     manager.voiceClient.on("disconnect", () => {
       // Fires when the call ends - by any party
       setSoftphoneItemLabel('Completed Call'); 
+      setSoftphoneItemIcon('end_call');
     });
+
     flex.Actions.addListener('afterCompleteTask', () => {
       // If all tasks are complete, then expand the softphone UI to 100% and 
       // show right hand panel
@@ -204,7 +231,8 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
 
       setSoftphonePanelWidth(softphonePanelWidthFull);
       showAgentDesktopPanel2(manager);
-      setSoftphoneItemLabel('No calls') 
+      setSoftphoneItemLabel('No calls');
+      setSoftphoneItemIcon('call');
     });
 
     
