@@ -197,10 +197,11 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     });
     flex.Actions.addListener('afterHoldCall', (payload) => {
       // Tweak the icon when call is put on hold
-      setSoftphoneItemIcon('pause_alt'); 
+      setSoftphoneItemIcon('pause'); 
     });
     flex.Actions.addListener('afterUnholdCall', (payload) => {
       // Tweak the icon when call is taken off hold
+      // Need to redetermine if call was muted or not...
       const connection = manager.voiceClient.activeConnection();
       setSoftphoneItemIcon(connection.isMuted() ? 'muted' : 'unmuted'); 
     });
