@@ -1,16 +1,17 @@
 import React from 'react';
+
 import { FlexPlugin } from 'flex-plugin';
 import { getOpenCTIScript } from './helpers/get-crm-script';
 
 import { loadScript } from './helpers/load-script';
 import { isSalesForce } from './helpers/salesforce';
+import MockAgentDashboard from './components/MockAgentDashboard/MockAgentDashboard';
 
 
 const softphonePanelWidthFull = 800;
-const softphonePanelWidthHalf = 400;
+const softphonePanelWidthHalf = 800;
 
 const PLUGIN_NAME = 'SalesforceAgentDashboardPlugin';
-
 
 
 
@@ -108,6 +109,15 @@ function hideAgentDesktopPanel2(manager) {
   });
 };
 
+function setupMockAgentDash(flex) {
+  flex.CRMContainer
+    .Content
+    .replace(
+      <MockAgentDashboard key="agent-stats" />
+);
+
+      
+}
 export default class SalesforceUtilityItemPlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
@@ -169,15 +179,19 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // https://trailblazer.salesforce.com/ideaView?id=0873A000000U06TQAS
     await disablePopOut();
 
-    // Let's pretend right hand CRM panel is a stats dashboard that shows when calls are completed
-    // and hides when a new call comes in
-    flex.CRMContainer
-      .Content
-      .replace(<div key="pretend-stats-component"><p align="center">IMAGINE THIS IS AN AGENT STATS DASHBOARD :)</p></div>);
 
     // TODO: Page refreshes can mean we need to recalculate some of the below listener-driven 
     // state based on the initial data we have on existing reservations... Can do this later
-    // Focusing on happy path today :) 
+    // Focusing on happy path today :)  Initialize things
+    setSoftphonePanelWidth(softphonePanelWidthFull);
+    showAgentDesktopPanel2(manager);
+    setSoftphoneItemLabel('No calls');
+    setSoftphoneItemIcon('call');
+
+
+    // Let's pretend right hand CRM panel is a stats dashboard that shows when calls are completed
+    // and hides when a new call comes in
+    setupMockAgentDash(flex);
 
 
     // Various listeners that update the Utility Item label during the lifecycle of a call task
@@ -234,7 +248,6 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemLabel('No calls');
       setSoftphoneItemIcon('call');
     });
-
     
   }
 
