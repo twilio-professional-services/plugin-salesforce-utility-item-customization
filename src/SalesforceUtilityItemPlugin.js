@@ -16,7 +16,7 @@ const PLUGIN_NAME = 'SalesforceAgentDashboardPlugin';
 
 
 /** 
- * Returns the (hopefully only) call reservation 
+ * UNUSED: Returns the (hopefully only) call reservation 
  */
 function getCurrentVoiceCallReservation(manager) {
   manager.workerClient.reservations.forEach((reservation, sid) => {
@@ -32,10 +32,9 @@ function getCurrentVoiceCallReservation(manager) {
  * utility item (keeping this around for reference)
  */
 async function disablePopOut() {
-  const sfApi = window.sforce.console;
-  console.debug(`SalesforceUtilityItemPlugin: Attempting to disable popout...`);
+  const sfApi = window.sforce?.console;
 
-  await sfApi.setCustomConsoleComponentPopoutable(false,
+  await sfApi?.setCustomConsoleComponentPopoutable(false,
     result => {
       if (result.success) {
         console.debug(`SalesforceUtilityItemPlugin: Disabling popout succeeded`);
@@ -48,9 +47,9 @@ async function disablePopOut() {
 
 
 function setSoftphonePanelVisibility(isVisible) {
-  const sfApi = window.sforce.opencti;
+  const sfApi = window.sforce?.opencti;
 
-  sfApi.setSoftphonePanelVisibility({
+  sfApi?.setSoftphonePanelVisibility({
     visible: isVisible,
     callback: result => {
     }
@@ -58,9 +57,9 @@ function setSoftphonePanelVisibility(isVisible) {
 }
 
 function setSoftphonePanelWidth(width) {
-  const sfApi = window.sforce.opencti;
+  const sfApi = window.sforce?.opencti;
 
-  sfApi.setSoftphonePanelWidth({
+  sfApi?.setSoftphonePanelWidth({
     widthPX: width,
     callback: result => {
     }
@@ -70,9 +69,9 @@ function setSoftphonePanelWidth(width) {
 
 
 function setSoftphoneItemLabel(label) {
-  const sfApi = window.sforce.opencti;
+  const sfApi = window.sforce?.opencti;
 
-  sfApi.setSoftphoneItemLabel({
+  sfApi?.setSoftphoneItemLabel({
     label,
     callback: result => {
     }
@@ -80,9 +79,9 @@ function setSoftphoneItemLabel(label) {
 }
 
 function setSoftphoneItemIcon(icon) {
-  const sfApi = window.sforce.opencti;
+  const sfApi = window.sforce?.opencti;
 
-  sfApi.setSoftphoneItemIcon({
+  sfApi?.setSoftphoneItemIcon({
     key: icon,
     callback: result => {
     }
@@ -97,7 +96,7 @@ function showAgentDesktopPanel2(manager) {
       }
     }
   });
-};
+}
 
 function hideAgentDesktopPanel2(manager) {
   manager.updateConfig({
@@ -107,17 +106,31 @@ function hideAgentDesktopPanel2(manager) {
       }
     }
   });
-};
+}
 
 function setupMockAgentDash(flex) {
   flex.CRMContainer
     .Content
     .replace(
       <MockAgentDashboard key="agent-stats" />
-);
-
-      
+  );
 }
+
+function addPageUnloadDetection() {
+  window.addEventListener('beforeunload', _beforeUnloadListener);
+}
+
+function removePageUnloadDetection() {
+  window.removeEventListener('beforeunload', _beforeUnloadListener);
+}
+
+function _beforeUnloadListener(e) {
+  // Cancel the event
+  e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+  // Chrome requires returnValue to be set
+  e.returnValue = '';
+}
+      
 export default class SalesforceUtilityItemPlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
@@ -125,7 +138,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
 
   /* 
   * Imitates the boilerplate OOTB Salesforce Integration logic to get access to Open CTI API
-  * I also augmented this with Console Integration API. When in Rome....
+  * I also augmented this with Console Integration API. 
   */
   async initializeSalesforceAPIs() {
       
@@ -207,6 +220,8 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       hideAgentDesktopPanel2(manager);
       setSoftphoneItemLabel('Active Call'); 
       setSoftphoneItemIcon('unmuted');
+      // Protect against refresh during an active call
+      addPageUnloadDetection();
     });
     flex.Actions.addListener('afterHoldCall', (payload) => {
       // Tweak the icon when call is put on hold
@@ -227,6 +242,8 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       // Fires when the call ends - by any party
       setSoftphoneItemLabel('Completed Call'); 
       setSoftphoneItemIcon('end_call');
+      // We no longer need to intercept/block page refreshes if there's no call
+      removePageUnloadDetection();
     });
 
     flex.Actions.addListener('afterCompleteTask', () => {
@@ -248,10 +265,5 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemLabel('No calls');
       setSoftphoneItemIcon('call');
     });
-    
   }
-
-
-
-
 }
