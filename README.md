@@ -5,10 +5,13 @@
 * Resizes the Flex softphone dynamically in Salesforce via Open CTI
 * Focuses the softphone whenever the utility item renders (so when launching Salesforce, or refreshing page)
 * Displays CRM panel whenever agent wraps a task. CRM panel is customized with a mock agent-level dashboard - for visuals 
-  * Thinking here is that one day we might have the agent stats pulling from Insights 
-* Hides the CRM panel on the right whenever a task is accepted
+  * Thinking here is that one day we might have the agent stats pulling from OOTB Twilio Sync indexes  
+* Hides the CRM panel on the right whenever a task is accepted (to free up real estate for call handling)
 * Manipulates Utility Bar tab text and icon as call lifecycle progresses “Incoming Call”, “Active Call”, “Completed Call”, “No Calls”
 * Disables the popout feature of the Utility Bar item - to prevent active calls from being dropped whenever this happens and the page reloads
+  * Note that while the page is loading, there's a small transient period where the plugin is still loading, and so the popout feature can still be accessed then. One to test. It's recoverable though.
+* Registers an `onbeforeunload` listener to prevent refresh during an active call
+  * Listener is added upon accepting the call, and removed upon disconnecting
 
 
 ## (Old) Demo
