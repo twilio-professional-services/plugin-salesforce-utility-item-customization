@@ -2,19 +2,16 @@
 
 ## Things it does
 
-* Resizes the Flex softphone dynamically in Salesforce via Open CTI
+* Resizes the Flex softphone dynamically in Salesforce via Open CTI - to reduce the Flex footprint when handling calls
 * Focuses the softphone whenever the utility item renders (so when launching Salesforce, or refreshing page)
+* Also "pops" the softphone into view whenever a new call reservation comes in
 * Displays CRM panel whenever agent wraps a task. CRM panel is customized with a mock agent-level dashboard - for visuals 
-  * Thinking here is that one day we might have the agent stats pulling from Insights 
+  * Thinking here is that one day we might have the agent stats pulling from data available within Flex real time stats model 
 * Hides the CRM panel on the right whenever a task is accepted
 * Manipulates Utility Bar tab text and icon as call lifecycle progresses “Incoming Call”, “Active Call”, “Completed Call”, “No Calls”
 * Disables the popout feature of the Utility Bar item - to prevent active calls from being dropped whenever this happens and the page reloads
+* Offers a "Refresh Salesforce" button in the header when handling a call, to reload the current view in Salesforce (without needing to perform a dangerous page refresh)
 
-
-## (Old) Demo
-
-Needs a wee refresh!
-<img width="768px" src="screenshots/walkthrough.gif"/>
 
 
 ## About Twilio Flex Plugins
