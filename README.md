@@ -1,21 +1,46 @@
 # Salesforce Utility Item Customization Plugin for Flex
 
-## Things it does
+## Things it Does
 
-* Resizes the Flex softphone dynamically in Salesforce via Open CTI - to reduce the Flex footprint when handling calls
-* Focuses the softphone whenever the utility item renders (so when launching Salesforce, or refreshing page)
-* Also "pops" the softphone into view whenever a new call reservation comes in
-* Displays CRM panel whenever agent wraps a task. CRM panel is customized with a mock agent-level dashboard - for visuals 
-  * Thinking here is that one day we might have the agent stats pulling from OOTB Twilio Sync indexes  
+The plugin demonstrates the following capabilities using the Salesforce OpenCTI and Console APIs:
+
+* Pops the Flex Softphone on launching Salesforce
+* Dynamically resizes the Flex Softphone during call handling (to reduce Flex footprint when handling calls)
+* Pops the Flex Softphone on incoming call
+* Dynamically updates the Flex Softphone Utility Item text and icon - during call lifecycle (“Incoming Call”, “Active Call”, “Completed Call”, “No Calls”)
+* Disables the Pop-Out feature of the Flex Softphone Utility Item - to prevent active calls from being dropped whenever this happens and the page reloads
+  * Note that while the page is loading, there's a small transient period where the plugin is still loading, and so the popout feature can still be accessed then. Low risk, as no active calls.
+* Adds a "Refresh Salesforce" button to the header of the Flex Softphone - to reload the current view in Salesforce (without needing to perform a full page refresh and risk call disconnection)
+
+In addition, the plugin demonstrates the following Flex UI customizations
+
+* Displays CRM panel whenever agent is not handling calls
+  * CRM panel is customized with a mock agent-level dashboard 
+  * Thinking here is that one day we might have the agent stats pulling from OOTB Twilio Sync indexes
 * Hides the CRM panel on the right whenever a task is accepted (to free up real estate for call handling)
-* Manipulates Utility Bar tab text and icon as call lifecycle progresses “Incoming Call”, “Active Call”, “Completed Call”, “No Calls”
-* Disables the popout feature of the Utility Bar item - to prevent active calls from being dropped whenever this happens and the page reloads
-  * Note that while the page is loading, there's a small transient period where the plugin is still loading, and so the popout feature can still be accessed then. One to test. It's recoverable though.
 * Registers an `onbeforeunload` listener to prevent refresh during an active call
   * Listener is added upon accepting the call, and removed upon disconnecting
-* Offers a "Refresh Salesforce" button in the header when handling a call, to reload the current view in Salesforce (without needing to perform a dangerous page refresh)
+  * The verbiage of the prompt is not configurable
 
+## Screenshots/Demos
 
+Pop the Flex Softphone on Launching Salesforce
+<img width="100%" src="screenshots/sfdc-flex-customization-demo-001-pop-flex-on-login.gif"/>
+
+Dynamically Resize the Flex Softphone (and Display Righthand Panel When Idle)
+<img width="100%" src="screenshots/sfdc-flex-customization-demo-002-resize-softphone-dynamically.gif"/>
+
+Pop the Flex Softphone on Incoming Call
+<img width="100%" src="screenshots/sfdc-flex-customization-demo-003-pop-flex-on-incoming-call.gif"/>
+
+Dynamically Update Flex Softphone Utility Item Label and Icon
+<img width="100%" src="screenshots/sfdc-flex-customization-demo-004-label-and-icon-dynamic-updates.gif"/>
+
+Disable Pop-Out of Flex Softphone Utility Item
+<img width="100%" src="screenshots/sfdc-flex-customization-demo-005-disable-pop-out.gif"/>
+
+Button to Refresh Salesforce UI from Flex Softphone
+<img width="100%" src="screenshots/sfdc-flex-customization-demo-006-refresh-salesforce-button.gif"/>  
 
 ## About Twilio Flex Plugins
 
