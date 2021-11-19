@@ -21,6 +21,7 @@ In addition, the plugin demonstrates the following Flex UI customizations
 * Registers an `onbeforeunload` listener to prevent refresh during an active call
   * Listener is added upon accepting the call, and removed upon disconnecting
   * The verbiage of the prompt is not configurable
+  * Poses a danger to the Flex app if prompt is open for too long (as it's modal and blocks entire UI thread)
 
 ## Screenshots/Demos
 
