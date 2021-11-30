@@ -41,6 +41,12 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // Register all our necessary listeners to react to call and task lifecycle events and actions
     this.initializeListeners(flex, manager);
 
+    // Force Task List and Task Panel to appear in vertical layout for better use of real estate
+    flex.AgentDesktopView.Panel1.defaultProps.splitterOrientation = "vertical";
+    // Remove superfluous hangup button from call controls (when operating at reduced size within Salesforce, 
+    // this button appears very close to the Hangup Call button)
+    flex.CallCanvasActions.Content.remove("hangup");
+
   }
 
   /**
@@ -64,7 +70,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // TODO: Page refreshes can mean we need to recalculate some of the below listener-driven 
     // state based on the initial data we have on existing reservations... Can do this later
     // Focusing on happy path today :)  Initialize things as if no tasks are in progress
-    setSoftphonePanelWidth(1000);
+    setSoftphonePanelWidth(900);
     setSoftphoneItemLabel('No calls');
     setSoftphoneItemIcon('call');
     
@@ -84,7 +90,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemLabel('Incoming Call!');
       setSoftphoneItemIcon('incoming_call');
       // Resize softphone UI to be smaller and hide right panel when call is answered
-      setSoftphonePanelWidth(500);
+      setSoftphonePanelWidth(555); // NOTE: 552 is the Flex threshold for making the Activity panel 'small'
       this.hideAgentDesktopPanel2(manager);
       // Pop open Flex upon the call arriving ;-)
       setSoftphonePanelVisibility(true); 
@@ -94,7 +100,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemLabel('Active Call'); 
       setSoftphoneItemIcon('unmuted');
       // Protect against refresh during an active call
-      this.addPageUnloadDetection();
+      //this.addPageUnloadDetection();
     });
 
     flex.Actions.addListener('afterHoldCall', (payload) => {
@@ -121,7 +127,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemLabel('Completed Call'); 
       setSoftphoneItemIcon('end_call');
       // We no longer need to intercept/block page refreshes if there's no call
-      this.removePageUnloadDetection();
+      //this.removePageUnloadDetection();
     });
 
     flex.Actions.addListener('afterCompleteTask', () => {
@@ -138,7 +144,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       });
       console.debug('SalesforceUtilityItemPlugin: All tasks completed!');
 
-      setSoftphonePanelWidth(1000);
+      setSoftphonePanelWidth(900);
       this.showAgentDesktopPanel2(manager);
       setSoftphoneItemLabel('No calls');
       setSoftphoneItemIcon('call');
@@ -184,30 +190,30 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     });
   }
 
-  addPageUnloadDetection() {
-    window.addEventListener('beforeunload', this._beforeUnloadListener);
-  }
+  // addPageUnloadDetection() {
+  //   window.addEventListener('beforeunload', this._beforeUnloadListener);
+  // }
 
-  removePageUnloadDetection() {
-    window.removeEventListener('beforeunload', this._beforeUnloadListener);
-  }
+  // removePageUnloadDetection() {
+  //   window.removeEventListener('beforeunload', this._beforeUnloadListener);
+  // }
 
-  _beforeUnloadListener(e) {
-    // Cancel the event
-    e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-    // Chrome requires returnValue to be set
-    e.returnValue = '';
-  }
+  // _beforeUnloadListener(e) {
+  //   // Cancel the event
+  //   e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+  //   // Chrome requires returnValue to be set
+  //   e.returnValue = '';
+  // }
 
   /** 
    * UNUSED: Returns the (hopefully only) call reservation 
    */
-     getCurrentVoiceCallReservation(manager) {
-      manager.workerClient.reservations.forEach((reservation, sid) => {
-        console.debug(reservation.task);
-        if (TaskHelper.isCallTask(reservation.task)) {
-          return reservation;
-        }
-      });
-    }
+    //  getCurrentVoiceCallReservation(manager) {
+    //   manager.workerClient.reservations.forEach((reservation, sid) => {
+    //     console.debug(reservation.task);
+    //     if (TaskHelper.isCallTask(reservation.task)) {
+    //       return reservation;
+    //     }
+    //   });
+    // }
 }
