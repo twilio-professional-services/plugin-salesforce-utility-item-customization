@@ -122,7 +122,6 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     });
 
     manager.voiceClient.on("disconnect", () => {
-      console.log
       // Fires when the call ends - by any party
       setSoftphoneItemLabel('Completed Call'); 
       setSoftphoneItemIcon('end_call');

@@ -1,6 +1,6 @@
 {
   "name": "plugin-salesforce-utility-item-customization",
-  "version": "107.0.0",
+  "version": "109.0.0",
   "private": true,
   "scripts": {
     "postinstall": "flex-plugin pre-script-check",
