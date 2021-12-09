@@ -3,14 +3,17 @@ import React from 'react';
 import { FlexPlugin } from 'flex-plugin';
 import MockAgentDashboard from './components/MockAgentDashboard/MockAgentDashboard';
 import RefreshSfdcButton from './components/RefreshSfdcButton/RefreshSfdcButton';
+import NoTaskListPanel1Wrapper from './components/NoTaskListPanel1Wrapper/NoTaskListPanel1Wrapper';
 import { initializeSalesforceAPIs, disablePopOut, refreshSfdc, setSoftphoneItemIcon, setSoftphoneItemLabel, setSoftphonePanelWidth, setSoftphonePanelVisibility } from './helpers/SalesforcePluginHelper';
+import { TaskHelper } from '@twilio/flex-ui';
 
-
-
+// Crude flag for auto-answer behaviors
+const IS_AUTO_ANSWER = false;
 const PLUGIN_NAME = 'SalesforceAgentDashboardPlugin';
 
       
 export default class SalesforceUtilityItemPlugin extends FlexPlugin {
+  
   constructor() {
     super(PLUGIN_NAME);
   }
@@ -41,12 +44,12 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // Register all our necessary listeners to react to call and task lifecycle events and actions
     this.initializeListeners(flex, manager);
 
-    // Force Task List and Task Panel to appear in vertical layout for better use of real estate
-    flex.AgentDesktopView.Panel1.defaultProps.splitterOrientation = "vertical";
-    // Remove superfluous hangup button from call controls (when operating at reduced size within Salesforce, 
-    // this button appears very close to the Hangup Call button)
-    flex.CallCanvasActions.Content.remove("hangup");
+    // Initialize any UI customizations
+    this.initializeUI(flex, manager);
 
+    //this.initializeNotifications(flex, manager);
+
+  
   }
 
   /**
@@ -57,7 +60,7 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     let success = await initializeSalesforceAPIs();
     if (success) {
       // Initialize the default state for the Saleforce softphone via SFDC APIs
-      this.initializeSalesforceUtilityApp();
+      await this.initializeSalesforceUtilityApp();
     } 
     return success;
   }
@@ -81,6 +84,33 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     // https://trailblazer.salesforce.com/ideaView?id=0873A000000U06TQAS
     disablePopOut();
   }
+
+  // initializeNotifications(flex, manager) {
+  //   manager.strings["AgentNonGracefulDisconnect-Reconnecting"] = (
+  //     'Connection to vehicle interrupted. Reconnecting...'
+  //   );
+    
+  //   manager.strings["AgentNonGracefulDisconnect-Reconnected"] = (
+  //     'Connection restored with vehicle'
+  //   );
+
+  //   Notifications.registerNotification({
+  //     id: "AgentNonGracefulDisconnect-Reconnecting",
+  //     closeButton: false,
+  //     content: "AgentNonGracefulDisconnect-Reconnecting",
+  //     timeout: 15000,
+  //     type: NotificationType.warning,
+  //   });
+
+  //   Notifications.registerNotification({
+  //     id: "AgentNonGracefulDisconnect-Reconnected",
+  //     closeButton: true,
+  //     content: "AgentNonGracefulDisconnect-Reconnected",
+  //     timeout: 5000,
+  //     type: NotificationType.success,
+  //   });
+  // }
+
   /**
    * Initialize the various listeners that update the Utility Item label during the lifecycle of a call task
    * and also update the UI size and right hand panel visibility
@@ -94,6 +124,21 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       this.hideAgentDesktopPanel2(manager);
       // Pop open Flex upon the call arriving ;-)
       setSoftphonePanelVisibility(true); 
+
+
+      const task = TaskHelper.getTaskByTaskSid(reservation.sid);
+
+      if (IS_AUTO_ANSWER && TaskHelper.isCallTask(task)) {
+        // AUTO ANSWER ON RESERVATION ARRIVING TO AGENT UI
+        console.debug("Auto answering!");
+        flex.Actions.invokeAction("AcceptTask", {
+          sid: reservation.sid,
+        });
+        flex.Actions.invokeAction("SelectTask", {
+          sid: reservation.sid,
+        });
+
+      }
     });
 
     flex.Actions.addListener('afterAcceptTask', () => {
@@ -101,6 +146,10 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemIcon('unmuted');
       // Protect against refresh during an active call
       //this.addPageUnloadDetection();
+
+      // TODO: Protect this by looking for a special task attribute
+      //Notifications.showNotification("AgentNonGracefulDisconnect-Reconnected");
+
     });
 
     flex.Actions.addListener('afterHoldCall', (payload) => {
@@ -127,6 +176,10 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
       setSoftphoneItemIcon('end_call');
       // We no longer need to intercept/block page refreshes if there's no call
       //this.removePageUnloadDetection();
+
+      // TODO: Add logic to detect non graceful disconnect
+      //Notifications.showNotification("AgentNonGracefulDisconnect-Reconnecting");
+
     });
 
     flex.Actions.addListener('afterCompleteTask', () => {
@@ -150,7 +203,29 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
     });
   }
 
+  initializeUI(flex, manager) {
+    // Force Task List and Task Panel to appear in vertical layout for better use of real estate
+    flex.AgentDesktopView.Panel1.defaultProps.splitterOrientation = "vertical";
 
+    if (IS_AUTO_ANSWER) {
+      // Replace the content of Panel1 to get rid of the task list on voice calls (makes for more real estate in a minified Flex UI)
+      flex.AgentDesktopView.Panel1.Content.replace(<NoTaskListPanel1Wrapper key="no-task-list-wrapper"/>, { if: props => TaskHelper.isCallTask(TaskHelper.getTaskByTaskSid(props.selectedTaskSid))});
+
+      // Commented out because it breaks Open CTI initialization somehow
+      // // If we already have a call task during initialization (i.e. in wrapping state), we'll need to select it
+      // // in order to hide the task list
+      // const task = this.getFirstVoiceCallTask(manager);
+
+      // if (task) {
+      //   flex.Actions.invokeAction("SelectTask", {
+      //     sid: task.sid,
+      //   });
+      // }
+    }
+    // Remove superfluous hangup button from call controls (when operating at reduced size within Salesforce, 
+    // this button appears very close to the Hangup Call button)
+    flex.CallCanvasActions.Content.remove("hangup");
+  }
 
 
   showAgentDesktopPanel2(manager) {
@@ -205,14 +280,14 @@ export default class SalesforceUtilityItemPlugin extends FlexPlugin {
   // }
 
   /** 
-   * UNUSED: Returns the (hopefully only) call reservation 
+   * Returns the first call task we find (useful for initializing UI after a page refresh)
    */
-    //  getCurrentVoiceCallReservation(manager) {
-    //   manager.workerClient.reservations.forEach((reservation, sid) => {
-    //     console.debug(reservation.task);
-    //     if (TaskHelper.isCallTask(reservation.task)) {
-    //       return reservation;
-    //     }
-    //   });
-    // }
+  getFirstVoiceCallTask(manager) {
+    const workerTasks = manager.store.getState().flex.worker.tasks;
+
+    if (workerTasks) {
+      return [...workerTasks.values()]
+        .find(task => TaskHelper.isCallTask(task));
+    }
+  }
 }

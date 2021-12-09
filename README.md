@@ -5,6 +5,9 @@
 The plugin demonstrates the following capabilities using the Salesforce OpenCTI and Console APIs:
 
 * Pops the Flex Softphone on launching Salesforce
+* Optionally auto-answers incoming calls (not desirable nor recommended for all customers - but included for reference)
+  * Hides the Task List when an auto-answered voice call is accepted - to free up real-estate
+* Removes the addition Hangup call icon button in call controls - as it's very close to "Hangup Call" button in the Task Canvas (when operating in small UI space)
 * Dynamically resizes the Flex Softphone during call handling (to reduce Flex footprint when handling calls)
 * Pops the Flex Softphone on incoming call
 * Dynamically updates the Flex Softphone Utility Item text and icon - during call lifecycle (“Incoming Call”, “Active Call”, “Completed Call”, “No Calls”)
