@@ -63,14 +63,18 @@ export const disablePopOut = () => {
  */
 export const refreshSfdc = () => {
   const sfApi = window.sforce?.console;
-
-  sfApi?.refreshNavigationTab((result) => {
-    if (result.success) {
-      console.debug(`SalesforceUtilityItemPlugin: Refresh SFDC succeeded`);
-    } else {
-      console.error("SalesforceUtilityItemPlugin: Error refreshing SFDC");
+  const refreshCallback = function refreshCallback(result) {
+    // Report whether refreshing the primary tab was successful
+    if (result.success !== true) {
+      logger.error('Primary did not refresh');
     }
+  };
+  sfApi?.getFocusedPrimaryTabId((result) => {
+    const { id } = result;
+    logger.log(result);
+    sfApi?.refreshPrimaryTabById(id, true, refreshCallback, true);
   });
+
 };
 
 export const setSoftphonePanelVisibility = (isVisible) => {
