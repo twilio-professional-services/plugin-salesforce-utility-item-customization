@@ -64,17 +64,24 @@ export const disablePopOut = () => {
 export const refreshSfdc = () => {
   const sfApi = window.sforce?.console;
   const refreshCallback = function refreshCallback(result) {
-    // Report whether refreshing the primary tab was successful
-    if (result.success !== true) {
-      logger.error('Primary did not refresh');
+    // Report whether refreshing the tab was successful
+    if (result.success === true) {
+      console.debug('SalesforceUtilityItemPlugin: Tab refreshed!');
+    } else {
+      console.warn('SalesforceUtilityItemPlugin: Tab did not refresh', result);
     }
   };
   sfApi?.getFocusedPrimaryTabId((result) => {
-    const { id } = result;
-    logger.log(result);
-    sfApi?.refreshPrimaryTabById(id, true, refreshCallback, true);
+    if (result.id && result.id !== 'null') {
+      const { id } = result;
+      console.debug(`SalesforceUtilityItemPlugin: Primary Tab ID: ${id}`);
+      sfApi?.refreshPrimaryTabById(id, true, refreshCallback, true);
+    } else {
+      console.debug(`SalesforceUtilityItemPlugin: No primary tab found, so refreshing navigation tab instead`);
+      sfApi?.refreshNavigationTab(refreshCallback);
+    }
   });
-
+  
 };
 
 export const setSoftphonePanelVisibility = (isVisible) => {
